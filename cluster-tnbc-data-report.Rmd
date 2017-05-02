@@ -84,7 +84,7 @@ outcome <- sapply(col.names, FUN=label.fn)
 With these data we can perform the differential expression analysis:
 
 ```{r}
-# library('samr')
+library('samr')
 
 expression.data <- tnbc.gene.set@assayData$exprs
 samr <- SAM(expression.data, outcome,resp.type="Two class unpaired", geneid = row.names(expression.data))
