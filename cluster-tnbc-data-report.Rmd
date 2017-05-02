@@ -1,0 +1,144 @@
+---
+title: "Cluster TNBC Data"
+params:
+  geo.dataset: GSE76250
+output:
+  html_document: default
+---
+
+The purpose of this RMarkdown document is to create Query Gene Signatures that represent the diseased
+state of Triple-Negative Breast Cancer.
+
+
+# Downloading the data
+We're going to use a dataset of TNBC data from another article that was clustering TNBC data from The GEO dataset `r params$geo.dataset`.
+
+For this we require Bioconductor's `GEOquery` to download the files:
+
+```{r}
+library('GEOquery')
+dir.create('geodata')
+tnbc.gene.set <- getGEO(params$geo.dataset, destdir="geodata")[[1]]
+```
+
+```{r}
+case.row.nums <- which(pData(tnbc.gene.set)$source_name_ch1 == 'breast_TNBC')
+case.ids <- pData(tnbc.gene.set)$geo_accession[case.row.nums]
+control.row.nums <- which(pData(tnbc.gene.set)$source_name_ch1 == 'breast_normal tissue')
+control.ids <- pData(tnbc.gene.set)$geo_accession[control.row.nums]
+```
+
+The resulting ExpressionSet contains `r ncol(tnbc.gene.set@assayData$exprs)` samples, of which there are 
+`r length(case.ids)` TNBC expression profiles along with `r length(control.ids)` expression profiles for non-cancerous
+adjacent tissue. The case and control samples are needed for performing our differential expression analysis to deduce
+which genes we should use to perform the clustering. When performing the clustering, all control samples will be 
+removed.
+
+Before we perform the analysis, there are a number of steps required to prepare the data.
+
+Most significantly, as this is a GEO GSE as opposed to a GDS, the microarray data has not already been normalized.
+For this we can apply quantile normalization using the `limma` package:
+
+```{r}
+require('limma')
+
+exprs(tnbc.gene.set) <- normalizeBetweenArrays(exprs(tnbc.gene.set))
+```
+
+Furthermore, as these microarray data were measured using the Affymetrix GeneChip&reg; Human Transcriptome Array 2.0,
+there are duplicate probe IDs on the microarray which map to the same genes. Following normalization, we can remove 
+duplicates by choosing the probe IDs that have the greatest Inter-Quartile Range (IQR). This can simply be performed 
+using the Bioconductor `genefilter` package:
+
+```{r}
+require('genefilter')
+# also download the annotation package for this microarray platform
+require('hta20transcriptcluster.db')
+
+# assign correct annotation package name to this GSE
+annotation(tnbc.gene.set) <- 'hta20transcriptcluster.db'
+
+#perform filtering to retain probes with highest IQR
+tnbc.gene.set <- genefilter::featureFilter(tnbc.gene.set)
+```
+
+
+## Differential Expression Analysis
+
+We will use SamR to perform differential expression analysis between the TNBC expression profiles and the 
+adjacent tissue expression profiles. Firstly, let's calculate the vector of `outcome measurements` for each sample 
+required by SamR:
+
+```{r}
+col.names <- colnames(exprs(tnbc.gene.set))
+label.fn <- function(sample.name) {
+  if (sample.name %in% case.ids) {
+    return(1)
+  } else {
+    return(2)
+  }
+}
+outcome <- sapply(col.names, FUN=label.fn)
+```
+
+With these data we can perform the differential expression analysis:
+
+```{r}
+# library('samr')
+
+expression.data <- tnbc.gene.set@assayData$exprs
+samr <- SAM(expression.data, outcome,resp.type="Two class unpaired", geneid = row.names(expression.data))
+samr
+```
+
+### Limma
+Let's perform it with limma too.
+
+```{r}
+# library('limma')
+
+design <- model.matrix(~ 0+factor(outcome))
+colnames(design) <- c('case', 'control')
+fit <- lmFit(tnbc.gene.set, design)
+fit <- eBayes(fit)
+top.genes <- topTable(fit, number=2500, adjust="BH")
+top.genes
+```
+
+## K-means Clustering by significantly differentially expressed genes
+
+Having identified the significantly differentially expressed genes with limma, we can take the expression values 
+for these and perform K-means clustering on them to find subtypes of triple-negative breast cancer.
+
+Firstly, let's take the names of the significantly differentially expressed genes and get the subset of expression values for them:
+
+```{r}
+# samr version
+# diff.expressed.probe.ids <- c(samr$siggenes.table$genes.up[,'Gene Name'], samr$siggenes.table$genes.lo[,'Gene Name'])
+# limma version
+diff.expressed.probe.ids <- as.character(top.genes$probeset_id)
+
+rows <- which(row.names(exprs(tnbc.gene.set)) %in% diff.expressed.probe.ids)
+
+# we only want non control id expression values
+case.ids <- as.character(case.ids)
+diff.expressed.expr.set <- exprs(tnbc.gene.set)[rows,case.ids]
+
+# need to transpose for kmeans - rows = datapoints
+diff.expr.transposed <- t(diff.expressed.expr.set)
+```
+
+Now we have the expression values for all samples that are differentially expressed we can go about clustering. But 
+first we need to find the ideal number of clusters, `K*`. This can be approximated by using Rob Tibshirani's *gap statistic*:
+
+<!-- TODO: try using kmeansW from https://cran.r-project.org/web/packages/FactoClass/FactoClass.pdf allows weighting of differential variables -->
+
+```{r}
+gap.statistic <- cluster::clusGap(diff.expr.transposed, cluster::pam,K.max=10, B=500)
+ plot(gap.statistic)
+print(gap.statistic, method='Tibs2001SEmax')
+```
+
+We can see, according to the Tibshirani method, the optimal number of clusters (and therefore the ideal number of 
+Triple-Negative Breast Cancer subtypes) from this sample of data is 1. This means that the expression data cannot 
+easily be split into any clustered based on these 10 significantly differentially expressed genes.
