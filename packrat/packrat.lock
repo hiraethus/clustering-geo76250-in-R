@@ -112,20 +112,10 @@ Source: CRAN
 Version: 0.10
 Hash: c3601a10c987d439e0c63ec635234a76
 
-Package: formatR
-Source: CRAN
-Version: 1.5
-Hash: 258cf79a8dbeedf1c981cdb53837d2af
-
 Package: genefilter
 Source: Bioconductor
 Version: 1.58.0
 Hash: 66e03c96afbe425296344846fa06a5b2
-
-Package: git2r
-Source: CRAN
-Version: 0.18.0
-Hash: 9dfaafbcca68be29b89ef7783dc1dac0
 
 Package: highr
 Source: CRAN
@@ -231,11 +221,6 @@ Source: CRAN
 Version: 1.2
 Hash: fdcac51a7f47decd60556ceefc3c26b1
 
-Package: rstudioapi
-Source: CRAN
-Version: 0.6
-Hash: fd256f8bfb9a64cc35f98b0decb1a79f
-
 Package: samr
 Source: CRAN
 Version: 2.0
@@ -260,16 +245,6 @@ Package: stringr
 Source: CRAN
 Version: 1.2.0
 Hash: 25a86d7f410513ebb7c0bc6a5e16bdc3
-
-Package: whisker
-Source: CRAN
-Version: 0.3-2
-Hash: 803d662762e532705c2c066a82d066e7
-
-Package: withr
-Source: CRAN
-Version: 1.0.2
-Hash: 774eb7be9087cdc24b53b74e5359cfac
 
 Package: xtable
 Source: CRAN
