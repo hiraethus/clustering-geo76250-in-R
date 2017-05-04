@@ -135,10 +135,30 @@ first we need to find the ideal number of clusters, `K*`. This can be approximat
 
 ```{r}
 gap.statistic <- cluster::clusGap(diff.expr.transposed, cluster::pam,K.max=10, B=500)
- plot(gap.statistic)
+plot(gap.statistic)
 print(gap.statistic, method='Tibs2001SEmax')
 ```
 
 We can see, according to the Tibshirani method, the optimal number of clusters (and therefore the ideal number of 
 Triple-Negative Breast Cancer subtypes) from this sample of data is 1. This means that the expression data cannot 
 easily be split into any clustered based on these 10 significantly differentially expressed genes.
+
+# Consensus Clustering
+<!-- 
+TODO use R package ConsensusClustPlus to find optimal numeber of clusters - method similar to original paper 
+(Liu et al, 2016)
+-->
+<!-- https://www.ncbi.nlm.nih.gov/pubmed/20427518 -->
+As no clusters were identified using a k-means clustering approach with Tibshirani's gap statistic, another approach is to 
+use a consensus clustering approach implemented by the Bioconductor package ConsensusClusterPlus.<!-- add ref -->
+
+Consensus works by creating random subsamples of the original dataset and to perform a particular clustering algorithm (e.g. PAM or K-means) over multiple values for K. A consensus value is calculated for each value of K which indicates how cleanly
+all of the clusters and the optimal K is evaluated by plotting an empirical cumulative distribution function. <!-- learn how to understand this -->
+
+## Perform Consensus Clustering with ConsensusClusterPlus
+```{r}
+dir.create('consensus_clust')
+library(ConsensusClusterPlus)
+results = ConsensusClusterPlus(diff.expr.transposed,maxK=6,reps=50,pItem=0.8,pFeature=1,
+title='consensus_clust',clusterAlg="hc",distance="pearson",seed=1262118388.71279,plot="png")
+```

@@ -7,6 +7,11 @@ Repos: CRAN=http://cran.rstudio.com/,
     BioCexp=https://bioconductor.org/packages/3.5/data/experiment,
     BioCextra=https://bioconductor.org/packages/3.5/extra
 
+Package: ALL
+Source: Bioconductor
+Version: 1.18.0
+Hash: ce086842a5adb81e7efed8fb30b7e25a
+
 Package: AnnotationDbi
 Source: Bioconductor
 Version: 1.38.0
@@ -26,6 +31,11 @@ Package: BiocGenerics
 Source: Bioconductor
 Version: 0.22.0
 Hash: fd6216a003826bcd84b2327206b9cb1a
+
+Package: ConsensusClusterPlus
+Source: Bioconductor
+Version: 1.40.0
+Hash: 5eb28616a70bceab95ceef823b60a81f
 
 Package: DBI
 Source: CRAN
