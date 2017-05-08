@@ -185,17 +185,17 @@ table(clusters$clustering)
 Now that the expression values have been clustered into the optimal number of clusters, $K*$, we can now create query gene 
 signatures for each subtype identified which will later be used to perform Gene Expression Connectivity Map such that we mightf find candidate therapies for each breast cancer subtype.
 
-# Consensus Clustering
-<!-- 
+<!-- # Consensus Clustering
+ 
 TODO use R package ConsensusClustPlus to find optimal numeber of clusters - method similar to original paper 
 (Liu et al, 2016)
--->
-<!-- https://www.ncbi.nlm.nih.gov/pubmed/20427518 -->
+
+https://www.ncbi.nlm.nih.gov/pubmed/20427518
 As no clusters were identified using a k-means clustering approach with Tibshirani's gap statistic, another approach is to 
-use a consensus clustering approach implemented by the Bioconductor package ConsensusClusterPlus.<!-- add ref -->
+use a consensus clustering approach implemented by the Bioconductor package ConsensusClusterPlus.
 
 Consensus works by creating random subsamples of the original dataset and to perform a particular clustering algorithm (e.g. PAM or K-means) over multiple values for K. A consensus value is calculated for each value of K which indicates how cleanly
-all of the clusters and the optimal K is evaluated by plotting an empirical cumulative distribution function. <!-- learn how to understand this -->
+all of the clusters and the optimal K is evaluated by plotting an empirical cumulative distribution function.
 
 ## Perform Consensus Clustering with ConsensusClusterPlus
 ```{r}
@@ -204,3 +204,4 @@ library(ConsensusClusterPlus)
 results = ConsensusClusterPlus(diff.expr.transposed,maxK=6,reps=50,pItem=0.8,pFeature=1,
 title='consensus_clust',clusterAlg="hc",distance="pearson",seed=1262118388.71279,plot="png")
 ```
+-->
