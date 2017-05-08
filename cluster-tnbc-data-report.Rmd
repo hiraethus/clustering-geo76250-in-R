@@ -125,14 +125,25 @@ summary <- getBM(filters='affy_hta_2_0', attributes=
 We can see that there are `r nrow(summary)` rows that map between the two platforms in our top significantly 
 differentiated genes. As such, it isn't possible for us to create a Query Gene Signature.
 
+<!-- look at top diff expressed probes and see if they are coding/non-coding -->
+We were unable to synthesise a query gene signature from the top differentially expressed probe ids over all 
+TNBC samples. This may be due to the fact that all differentially expressed probe IDs mapped to probes for non-coding 
+regions of the genome which is an attribute that differentiates the Human Tissue Array from the Human Genome U133 
+Plus 2 platform.
+
 # K-means Clustering by significantly differentially expressed genes
 
-Having identified the significantly differentially expressed genes with limma, we can take the expression values 
-for these and perform K-means clustering on them to find subtypes of triple-negative breast cancer.
+As we were unable to synthesise a global query gene signature that identified genes that mapped to probe ids on the 
+target Affymetrix microarray platform, it might be that we get better results by identifying subtypes of TNBC by 
+using clustering algorithms.
 
-Firstly, let's take the names of the significantly differentially expressed genes and get the subset of expression values for them:
+While the significantly differentially expressed probes were unable to be used to synthesise a query gene signature for TNBC, we can use these same probe IDs as the basis for clustering our data. K-means clustering will be performed
+to find subtypes of triple-negative breast cancer.
 
-```{r}
+Firstly, let's take the names of the significantly differentially expressed probe ids create an expression matrix 
+with only these probe IDs. This will serve as input to our clustering algorithm.
+
+```{r create subset expression matrix}
 # limma version
 diff.expressed.probe.ids <- as.character(top.genes$probeset_id)
 
@@ -146,7 +157,7 @@ diff.expressed.expr.set <- exprs(tnbc.gene.set)[rows,case.ids]
 diff.expr.transposed <- t(diff.expressed.expr.set)
 ```
 
-Now we have the expression values for all samples that are differentially expressed we can go about clustering. But 
+Now we have the expression matrix for all samples that are differentially expressed we can go about clustering. But 
 first we need to find the ideal number of clusters, `K*`. This can be approximated by using Rob Tibshirani's *gap statistic*:
 
 <!-- TODO: try using kmeansW from https://cran.r-project.org/web/packages/FactoClass/FactoClass.pdf allows weighting of differential variables -->
