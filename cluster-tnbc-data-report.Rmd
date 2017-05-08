@@ -74,11 +74,11 @@ Following the filtering, `r removed.element.details$numDupsRemoved` duplicate ge
 `r removed.element.details$numLowVar` genes were removed due to low variance and `r removed.element.details$numRemoved.ENTREZID` were removed for having no entrez id <!-- perhaps stop this happening by 
 setting require.entrez=F!!!!`-->.
 
-## Differential Expression Analysis
+# Differential Expression Analysis
 
-We will use SamR to perform differential expression analysis between the TNBC expression profiles and the 
+We will use limma to perform differential expression analysis between the TNBC expression profiles and the 
 adjacent tissue expression profiles. Firstly, let's calculate the vector of `outcome measurements` for each sample 
-required by SamR:
+required by limma:
 
 ```{r}
 col.names <- colnames(exprs(tnbc.gene.set))
