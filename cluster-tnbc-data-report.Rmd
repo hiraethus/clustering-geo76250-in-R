@@ -92,18 +92,7 @@ label.fn <- function(sample.name) {
 outcome <- sapply(col.names, FUN=label.fn)
 ```
 
-With these data we can perform the differential expression analysis:
-
-```{r}
-library('samr')
-
-expression.data <- tnbc.gene.set@assayData$exprs
-samr <- SAM(expression.data, outcome,resp.type="Two class unpaired", geneid = row.names(expression.data))
-samr
-```
-
-### Limma
-Let's perform it with limma too.
+With these data we can perform the differential expression analysis. We will perform the differential expression analysis using the limma R package:
 
 ```{r}
 # library('limma')
@@ -124,8 +113,6 @@ for these and perform K-means clustering on them to find subtypes of triple-nega
 Firstly, let's take the names of the significantly differentially expressed genes and get the subset of expression values for them:
 
 ```{r}
-# samr version
-# diff.expressed.probe.ids <- c(samr$siggenes.table$genes.up[,'Gene Name'], samr$siggenes.table$genes.lo[,'Gene Name'])
 # limma version
 diff.expressed.probe.ids <- as.character(top.genes$probeset_id)
 
