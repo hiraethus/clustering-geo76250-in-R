@@ -95,17 +95,37 @@ outcome <- sapply(col.names, FUN=label.fn)
 With these data we can perform the differential expression analysis. We will perform the differential expression analysis using the limma R package:
 
 ```{r}
-# library('limma')
-
 design <- model.matrix(~ 0+factor(outcome))
 colnames(design) <- c('case', 'control')
 fit <- lmFit(tnbc.gene.set, design)
 fit <- eBayes(fit)
-top.genes <- topTable(fit, number=2500, adjust="BH")
+top.genes <- topTable(fit, coef=2, number=2500, adjust.method="fdr", p.value=0.05,lfc=0)
 top.genes
 ```
 
-## K-means Clustering by significantly differentially expressed genes
+# Creating a global TNBC Query Gene Signature
+
+In order for us to create a Query Gene Signature that's compatible with the the reference profiles, we need 
+to convert the Affymetrix GeneChip&reg; Human Transcriptome Array 2.0 probe IDs into the equivalent probe IDs
+from the Affymetrix HG-U133A microarray platform. This is a necessary step as the referenece profiles describing 
+drug action used the latter platform.
+
+To do this, we use the `biomaRt` package:
+
+```{r biomaRt map ids}
+library('biomaRt')
+
+hta.ids <- as.character(top.genes$probeset_id)
+mart <- useDataset('hsapiens_gene_ensembl', useMart('ensembl'))
+summary <- getBM(filters='affy_hta_2_0', attributes= 
+                   c("ensembl_gene_id", 'affy_hg_u133_plus_2', 'affy_hta_2_0', 'description'),
+                 values=hta.ids,mart= mart)
+```
+
+We can see that there are `r nrow(summary)` rows that map between the two platforms in our top significantly 
+differentiated genes. As such, it isn't possible for us to create a Query Gene Signature.
+
+# K-means Clustering by significantly differentially expressed genes
 
 Having identified the significantly differentially expressed genes with limma, we can take the expression values 
 for these and perform K-means clustering on them to find subtypes of triple-negative breast cancer.
