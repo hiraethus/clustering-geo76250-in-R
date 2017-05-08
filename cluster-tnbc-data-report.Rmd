@@ -229,3 +229,23 @@ create.clust.subset <- function(clust.num) {
 clust.subsets <- lapply(X = list(clust1=1,clust2=2,clust3=3,clust4=4), FUN = create.clust.subset)
 ```
 
+Now that we have created expression matrices for each of the four subsets we can now perform differential expression 
+analysis on each as we did before globally. We will reuse the design matrix as bef
+
+```{r subtype differential expression analysis}
+find.top.genes <- function(expr.mat) {
+  num.control <- length(which(design[,2] == 1))
+  num.case <- ncol(expr.mat) - num.control
+  
+  control.flags <- c(rep(0, num.case), rep(1, num.control))
+  case.flags <- c(rep(1, num.case), rep(0, num.control))
+
+  clust.design.mat <- cbind(case.flags, control.flags)
+  names(clust.design.mat) <- c('case', 'control')
+  fit <- lmFit(expr.mat, clust.design.mat)
+  fit <- eBayes(fit)
+  return(topTable(fit, coef=2, number=2500, adjust.method="fdr", p.value=0.05,lfc=0))
+}
+
+clust.top.genes <- lapply(X=clust.subsets, FUN = find.top.genes)
+```
