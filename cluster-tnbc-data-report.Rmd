@@ -249,3 +249,15 @@ find.top.genes <- function(expr.mat) {
 
 clust.top.genes <- lapply(X=clust.subsets, FUN = find.top.genes)
 ```
+
+We can observe the overlap of the top 2500 differentially expressed genes among the different clusters to see how 
+similar or dissimilar the clusters are.
+
+```{r subtype venn diagram sd genes}
+library(VennDiagram)
+clust.sd.genes <- lapply(X = clust.top.genes, FUN = function(exp.mat) rownames(exp.mat))
+venn.diagram(clust.sd.genes, "ClusterSDGeneVennDiagram.tiff")
+```
+
+[Venn Diagram](./ClusterSDGeneVennDiagram.tiff)
+
