@@ -205,3 +205,27 @@ results = ConsensusClusterPlus(diff.expr.transposed,maxK=6,reps=50,pItem=0.8,pFe
 title='consensus_clust',clusterAlg="hc",distance="pearson",seed=1262118388.71279,plot="png")
 ```
 -->
+
+<!-- TOOD add section discussing pathways involved in these subtypes -->
+# Create QGSs for Subtypes
+
+Now we have identifed these subtypes, we can partition our data according to the subtypes the samples segregate into.
+From this we can create individual Query Gene Signatures for each subtype. Such that we can perform differential 
+expression analysis on each of these subsets, it befits us to reintroduce the non TNBC samples to each of these 
+expression matrices.
+
+```{r partition data for subtypes}
+tnbc.expr.data <- exprs(tnbc.gene.set)
+
+create.clust.subset <- function(clust.num) {
+  clust.sample.ids <- names(which(clusters$clustering == clust.num))
+  
+  sample.indices <- which(colnames(tnbc.expr.data) %in% clust.sample.ids)
+  control.indices <- which(design[,2] == 1)
+  # put the controls at the end
+  return(tnbc.expr.data[,c(sample.indices, control.indices)])
+}
+
+clust.subsets <- lapply(X = list(clust1=1,clust2=2,clust3=3,clust4=4), FUN = create.clust.subset)
+```
+
