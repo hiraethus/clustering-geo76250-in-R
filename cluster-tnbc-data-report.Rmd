@@ -99,8 +99,7 @@ design <- model.matrix(~ 0+factor(outcome))
 colnames(design) <- c('case', 'control')
 fit <- lmFit(tnbc.gene.set, design)
 fit <- eBayes(fit)
-top.genes <- topTable(fit, coef=2, number=2500, adjust.method="fdr", p.value=0.05,lfc=0)
-top.genes
+top.genes <- topTable(fit, coef=2, number=50, adjust.method="fdr", p.value=0.05,lfc=0)
 ```
 
 # Creating a global TNBC Query Gene Signature
@@ -244,13 +243,13 @@ find.top.genes <- function(expr.mat) {
   names(clust.design.mat) <- c('case', 'control')
   fit <- lmFit(expr.mat, clust.design.mat)
   fit <- eBayes(fit)
-  return(topTable(fit, coef=2, number=2500, adjust.method="fdr", p.value=0.05,lfc=0))
+  return(topTable(fit, coef=2, number=50, adjust.method="fdr", p.value=0.05,lfc=0))
 }
 
 clust.top.genes <- lapply(X=clust.subsets, FUN = find.top.genes)
 ```
 
-We can observe the overlap of the top 2500 differentially expressed genes among the different clusters to see how 
+We can observe the overlap of the top 50 differentially expressed genes among the different clusters to see how 
 similar or dissimilar the clusters are.
 
 ```{r subtype venn diagram sd genes}
@@ -259,5 +258,5 @@ clust.sd.genes <- lapply(X = clust.top.genes, FUN = function(exp.mat) rownames(e
 venn.diagram(clust.sd.genes, "ClusterSDGeneVennDiagram.tiff")
 ```
 
-[Venn Diagram](./ClusterSDGeneVennDiagram.tiff)
+![Venn Diagram](./ClusterSDGeneVennDiagram.tiff)
 
