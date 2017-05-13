@@ -122,8 +122,6 @@ library('biomaRt')
 
 hta.ids <- as.character(top.genes$probeset_id)
 
-# remove .1 from end of hta ids
-hta.ids <- substr(hta.ids, 1, nchar(hta.ids) - 2)
 mart <- useDataset('hsapiens_gene_ensembl', useMart('ensembl'))
 probe.id.mapping <- getBM(filters='affy_hta_2_0', attributes= 
                    c("ensembl_gene_id", params$old.microarray.platform.id, 'affy_hta_2_0', 'description'),
@@ -197,7 +195,10 @@ with only these probe IDs. This will serve as input to our clustering algorithm.
 # limma version
 diff.expressed.probe.ids <- as.character(top.genes$probeset_id)
 
-rows <- which(row.names(exprs(tnbc.gene.set)) %in% diff.expressed.probe.ids)
+# need to add in '.1' to end to compare with expression matrix
+probe.ids.with.1 <- sapply(diff.expressed.probe.ids, function(probe.id) return(paste0(probe.id,'.1')))
+
+rows <- which(row.names(exprs(tnbc.gene.set)) %in% probe.ids.with.1)
 
 # we only want non control id expression values
 case.ids <- as.character(case.ids)
@@ -298,6 +299,13 @@ find.top.genes <- function(expr.mat) {
 }
 
 clust.top.genes <- lapply(X=clust.subsets, FUN = find.top.genes)
+
+# remove '.1' from end of probset_id column
+clust.top.genes.mapped.probes <- lapply(X=clust.top.genes, FUN= function(clust.df) {
+  new.rownames <- substr(rownames(clust.df), 1, nchar(rownames(clust.df)) - 2)
+  rownames(clust.df) <- new.rownames
+  return(clust.df)
+})
 ```
 
 We can observe the overlap of the top `r params$top.gene.count` differentially expressed genes among the different clusters to see how 
@@ -305,7 +313,7 @@ similar or dissimilar the clusters are.
 
 ```{r subtype venn diagram sd genes}
 library(VennDiagram)
-clust.sd.genes <- lapply(X = clust.top.genes, FUN = function(exp.mat) rownames(exp.mat))
+clust.sd.genes <- lapply(X = clust.top.genes.mapped.probes, FUN = function(exp.mat) rownames(exp.mat))
 venn.diagram(clust.sd.genes, "ClusterSDGeneVennDiagram.tiff")
 ```
 
@@ -316,9 +324,7 @@ venn.diagram(clust.sd.genes, "ClusterSDGeneVennDiagram.tiff")
 ```{r map probes for each cluster}
 
 map.probe.ids <- function(top.gene.df) {
-  # remove '.1' from end of HTA 2.0. probe IDs
   gene.ids <- row.names(top.gene.df)
-  gene.ids <- substr(gene.ids, 1, nchar(gene.ids) - 2)
   mart <- useDataset('hsapiens_gene_ensembl', useMart('ensembl'))
   summary.clust <- getBM(filters='affy_hta_2_0', attributes= 
                c("ensembl_gene_id", params$old.microarray.platform.id, 'affy_hta_2_0', 'description'),
@@ -327,7 +333,7 @@ map.probe.ids <- function(top.gene.df) {
   return(summary.clust)
 }
 
-mapped.probe.ids.top.genes <- lapply(X=clust.top.genes, FUN = map.probe.ids)
+mapped.probe.ids.top.genes <- lapply(X=clust.top.genes.mapped.probes, FUN = map.probe.ids)
 
 ```
 
