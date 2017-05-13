@@ -3,6 +3,8 @@ title: "Cluster TNBC Data"
 params:
   geo.dataset: GSE76250
   top.gene.count: 500
+  old.microarray.platform.name: 'Affymetrix HG-U133A'
+  old.microarray.platform.id: 'affy_hg_u133a'
 output:
   html_document: default
 ---
@@ -107,7 +109,7 @@ top.genes <- topTable(fit, coef=2, number=params$top.gene.count, adjust.method="
 
 In order for us to create a Query Gene Signature that's compatible with the the reference profiles, we need 
 to convert the Affymetrix GeneChip&reg; Human Transcriptome Array 2.0 probe IDs into the equivalent probe IDs
-from the Affymetrix HG-U133A microarray platform. This is a necessary step as the referenece profiles describing 
+from the `r params$old.microarray.platform.name` microarray platform. This is a necessary step as the referenece profiles describing 
 drug action used the latter platform.
 
 To do this, we use the `biomaRt` package:
@@ -121,7 +123,7 @@ hta.ids <- as.character(top.genes$probeset_id)
 hta.ids <- substr(hta.ids, 1, nchar(hta.ids) - 2)
 mart <- useDataset('hsapiens_gene_ensembl', useMart('ensembl'))
 summary <- getBM(filters='affy_hta_2_0', attributes= 
-                   c("ensembl_gene_id", 'affy_hg_u133_plus_2', 'affy_hta_2_0', 'description'),
+                   c("ensembl_gene_id", params$old.microarray.platform.id, 'affy_hta_2_0', 'description'),
                  values=hta.ids,mart= mart)
 ```
 
@@ -131,8 +133,7 @@ differentiated genes. As such, it isn't possible for us to create a Query Gene S
 <!-- look at top diff expressed probes and see if they are coding/non-coding -->
 We were unable to synthesise a query gene signature from the top differentially expressed probe ids over all 
 TNBC samples. This may be due to the fact that all differentially expressed probe IDs mapped to probes for non-coding 
-regions of the genome which is an attribute that differentiates the Human Tissue Array from the Human Genome U133 
-Plus 2 platform.
+regions of the genome which is an attribute that differentiates the Human Tissue Array from the `r params$old.microarray.platform.name` platform.
 
 # K-means Clustering by significantly differentially expressed genes
 
@@ -264,7 +265,7 @@ venn.diagram(clust.sd.genes, "ClusterSDGeneVennDiagram.tiff")
 
 ![Venn Diagram](./ClusterSDGeneVennDiagram.tiff)
 
-## Map cluster Affymetrix HTA 2 to Affymetrix HG U133 Plus 2 for each cluster
+## Map cluster Affymetrix HTA 2 to `r params$old.microarray.platform.name` for each cluster
 
 ```{r map probes for each cluster}
 
@@ -274,7 +275,7 @@ map.probe.ids <- function(top.gene.df) {
   gene.ids <- substr(gene.ids, 1, nchar(gene.ids) - 2)
   mart <- useDataset('hsapiens_gene_ensembl', useMart('ensembl'))
   summary.clust <- getBM(filters='affy_hta_2_0', attributes= 
-               c("ensembl_gene_id", 'affy_hg_u133_plus_2', 'affy_hta_2_0', 'description'),
+               c("ensembl_gene_id", params$old.microarray.platform.id, 'affy_hta_2_0', 'description'),
                values=gene.ids,mart= mart)
 
   return(summary.clust)
