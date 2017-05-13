@@ -2,6 +2,7 @@
 title: "Cluster TNBC Data"
 params:
   geo.dataset: GSE76250
+  top.gene.count: 500
 output:
   html_document: default
 ---
@@ -99,7 +100,7 @@ design <- model.matrix(~ 0+factor(outcome))
 colnames(design) <- c('case', 'control')
 fit <- lmFit(tnbc.gene.set, design)
 fit <- eBayes(fit)
-top.genes <- topTable(fit, coef=2, number=50, adjust.method="fdr", p.value=0.05,lfc=0)
+top.genes <- topTable(fit, coef=2, number=params$top.gene.count, adjust.method="fdr", p.value=0.05,lfc=0)
 ```
 
 # Creating a global TNBC Query Gene Signature
@@ -243,13 +244,13 @@ find.top.genes <- function(expr.mat) {
   names(clust.design.mat) <- c('case', 'control')
   fit <- lmFit(expr.mat, clust.design.mat)
   fit <- eBayes(fit)
-  return(topTable(fit, coef=2, number=50, adjust.method="fdr", p.value=0.05,lfc=0))
+  return(topTable(fit, coef=2, number=params$top.gene.count, adjust.method="fdr", p.value=0.05,lfc=0))
 }
 
 clust.top.genes <- lapply(X=clust.subsets, FUN = find.top.genes)
 ```
 
-We can observe the overlap of the top 50 differentially expressed genes among the different clusters to see how 
+We can observe the overlap of the top `r params$top.gene.count` differentially expressed genes among the different clusters to see how 
 similar or dissimilar the clusters are.
 
 ```{r subtype venn diagram sd genes}
@@ -260,3 +261,19 @@ venn.diagram(clust.sd.genes, "ClusterSDGeneVennDiagram.tiff")
 
 ![Venn Diagram](./ClusterSDGeneVennDiagram.tiff)
 
+## Map cluster Affymetrix HTA 2 to Affymetrix HG U133 Plus 2 for each cluster
+
+```{r map probes for each cluster}
+
+map.probe.ids <- function(top.gene.df) {
+  mart <- useDataset('hsapiens_gene_ensembl', useMart('ensembl'))
+  summary.clust <- getBM(filters='affy_hta_2_0', attributes= 
+               c("ensembl_gene_id", 'affy_hg_u133_plus_2', 'affy_hta_2_0', 'description'),
+               values=top.gene.df,mart= mart)
+  
+  return(summary.clust)
+}
+
+mapped.probe.ids.top.genes <- lapply(X=clust.top.genes, FUN = map.probe.ids)
+
+```
