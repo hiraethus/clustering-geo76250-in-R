@@ -116,6 +116,9 @@ To do this, we use the `biomaRt` package:
 library('biomaRt')
 
 hta.ids <- as.character(top.genes$probeset_id)
+
+# remove .1 from end of hta ids
+hta.ids <- substr(hta.ids, 1, nchar(hta.ids) - 2)
 mart <- useDataset('hsapiens_gene_ensembl', useMart('ensembl'))
 summary <- getBM(filters='affy_hta_2_0', attributes= 
                    c("ensembl_gene_id", 'affy_hg_u133_plus_2', 'affy_hta_2_0', 'description'),
@@ -266,14 +269,18 @@ venn.diagram(clust.sd.genes, "ClusterSDGeneVennDiagram.tiff")
 ```{r map probes for each cluster}
 
 map.probe.ids <- function(top.gene.df) {
+  # remove '.1' from end of HTA 2.0. probe IDs
+  gene.ids <- row.names(top.gene.df)
+  gene.ids <- substr(gene.ids, 1, nchar(gene.ids) - 2)
   mart <- useDataset('hsapiens_gene_ensembl', useMart('ensembl'))
   summary.clust <- getBM(filters='affy_hta_2_0', attributes= 
                c("ensembl_gene_id", 'affy_hg_u133_plus_2', 'affy_hta_2_0', 'description'),
-               values=top.gene.df,mart= mart)
-  
+               values=gene.ids,mart= mart)
+
   return(summary.clust)
 }
 
 mapped.probe.ids.top.genes <- lapply(X=clust.top.genes, FUN = map.probe.ids)
 
 ```
+
