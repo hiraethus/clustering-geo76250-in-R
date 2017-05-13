@@ -5,6 +5,7 @@ params:
   top.gene.count: 500
   old.microarray.platform.name: 'Affymetrix HG-U133A'
   old.microarray.platform.id: 'affy_hg_u133a'
+  qgs.length: 50
 output:
   html_document: default
 ---
@@ -151,11 +152,40 @@ non.duplicate.rows <- which(!duplicated(top.genes.with.probeids$affy_hg_u133a))
 top.genes.with.probeids <- top.genes.with.probeids[non.duplicate.rows,]
 ```
 
+## Creating the global Query Gene Signature (Unordered and Ordered)
+We will take the $$N = `r params$qgs.length`$$ most perturbed genes (highest log fold change) to create our query gene signatures.
+
+```{r top 50 perturbed genes}
+top.genes.ordered.by.logFC <- top.genes.with.probeids[order(abs(top.genes.with.probeids$logFC), decreasing = T),]
+# only to N
+top.n.ordered.by.logFC <- top.genes.ordered.by.logFC[1:params$qgs.length,]
+```
+
+### Unordered QGS
+Next we will create the unordered query gene signature by taking the signs of each of the `logFC` and making them `-1` or `+1`. 
+
+```{r unordered global qgs}
+unorderd.global.qgs <- sign(top.n.ordered.by.logFC$logFC)
+names(unorderd.global.qgs) <- top.n.ordered.by.logFC$affy_hg_u133a
+unorderd.global.qgs
+```
+### Ordered QGS
+To create the orderd query gene signature we multiply the rank of each logFC by the unordered query gene signature. As 
+`top.n.ordered.by.logFC` is already ordered, we can just multiple each of the probes by the values from 1 to 
+`r params$qgs.length`.
+
+```{r ordered global qgs}
+ordered.global.qgs <- unorderd.global.qgs * seq(1,params$qgs.length)
+ordered.global.qgs
+```
+
+<!-- TODO - compare to RNAseq data qgs in report -->
+
+
 # K-means Clustering by significantly differentially expressed genes
 
-As we were unable to synthesise a global query gene signature that identified genes that mapped to probe ids on the 
-target Affymetrix microarray platform, it might be that we get better results by identifying subtypes of TNBC by 
-using clustering algorithms.
+Albeit we have successfully created a Query Gene Signature that globally describes the state of TNBC, it might be
+that we get better results by identifying subtypes of TNBC by using clustering algorithms.
 
 While the significantly differentially expressed probes were unable to be used to synthesise a query gene signature for TNBC, we can use these same probe IDs as the basis for clustering our data. K-means clustering will be performed
 to find subtypes of triple-negative breast cancer.
