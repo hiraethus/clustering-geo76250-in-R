@@ -420,10 +420,43 @@ cluster.ordered.qgs <- lapply(FUN = create.ordered.qgs, X = cluster.unordered.qg
 cluster.ordered.qgs
 ```
 
+# Export created QGSs to file
+
+Finally I save each of these Query Gene Signatures, both the global and clustered Query Gene Signatures to file for 
+using with QUADrATiC connectivity map. Following running this script you will find all query gene signatures in the 
+`qgs` folder of this R project.
+
+```{r export qgs to file}
+!dir.exists('qgs') &&  dir.create('qgs')
+
+save.qgs.to.file <- function(qgs.vector, is.ordered, is.global, clust.num = -1) {
+  qgs.id <- if (is.global) 'global' else paste0('clust', clust.num)
+  ordered.status <- if (is.ordered) 'ordered' else 'unordered'
+  file.name <- paste(params$geo.dataset, qgs.id, ordered.status, sep='_')
+  file.path <- paste0('qgs/',file.name,'.tsv')
+
+  write.table(qgs.vector, file = file.path,col.names = F, quote = F)
+}
+
+# global QGSs
+save.qgs.to.file(unorderd.global.qgs, is.ordered = F, is.global = T)
+save.qgs.to.file(ordered.global.qgs, is.ordered = T, is.global = T)
+
+# cluster QGSs
+
+for (i in 1:length(cluster.unordered.qgs)) {
+  save.qgs.to.file(cluster.unordered.qgs[[i]], is.ordered = F, is.global = F, clust.num = i)
+  save.qgs.to.file(cluster.ordered.qgs[[i]], is.ordered = T, is.global = F, clust.num = i)
+}
+```
 
 <!-- TODO 
 * COMPLETE merge top genes with mapped probe ids
 * DONE filter out empty / duplicate
-* create qgs ordered/unordered for each cluster
+* DONE create qgs ordered/unordered for each cluster
+* TODO extract QGSs to file
 * write another script to run against QUADrATiC
+* == In future ==
+* TODO refactor so functions are reused for global QGSs
+* Extract code into separate R module/rewrite in scala (Saddle library for data frames)
 * -->
