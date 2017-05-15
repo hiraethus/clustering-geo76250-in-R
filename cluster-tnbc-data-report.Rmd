@@ -375,6 +375,18 @@ clust.top.genes.with.mapped.probe.ids.no.duplicate <-
   lapply(FUN = remove.empty.and.duplicate.u133a, X = clust.top.genes.with.mapped.probe.ids)
 ```
 
+## Creating Query Gene Signatures for each cluster (Unordered and Ordered)
+Again, we will take the $$N = `r params$qgs.length`$$ most perturbed genes (highest log fold change) to create our query gene signatures.
+
+```{r top 50 perturbed genes for clusters}
+top.N.logFC.genes.ordered <- function(mapped.probe.ids) {
+  ordered.by.logFC <- mapped.probe.ids[order(abs(mapped.probe.ids$logFC), decreasing = T),]
+  return(ordered.by.logFC[1:params$qgs.length,])
+}
+
+top.N.ordered.clusts <- lapply(FUN = top.N.logFC.genes.ordered, X = clust.top.genes.with.mapped.probe.ids.no.duplicate)
+
+```
 
 
 <!-- TODO 
