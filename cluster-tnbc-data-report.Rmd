@@ -214,17 +214,19 @@ first we need to find the ideal number of clusters, `K*`. This can be approximat
 <!-- TODO: try using kmeansW from https://cran.r-project.org/web/packages/FactoClass/FactoClass.pdf allows weighting of differential variables -->
 
 ```{r}
-gap.statistic <- cluster::clusGap(diff.expr.transposed, cluster::pam,K.max=10, B=500)
+library(cluster)
+gap.statistic <- clusGap(diff.expr.transposed, pam,K.max=10, B=500)
 plot(gap.statistic)
 print(gap.statistic, method='Tibs2001SEmax')
+ideal.K <- with(gap.statistic,maxSE(Tab[,"gap"],Tab[,"SE.sim"], method='Tibs2001SEmax'))
 ```
 
 We can see, according to the Tibshirani method, the optimal number of clusters (and therefore the ideal number of 
-Triple-Negative Breast Cancer subtypes) from this sample of data is 4. This reflects the results found by Liu et al in their 
-paper using the same datapoints albeit they performed a different clustering method called Consensus Clustering.
+Triple-Negative Breast Cancer subtypes) from this sample of data is `r ideal.K`. This reflects the results found by 
+Liu et al in their paper using the same datapoints albeit they performed a different clustering method called Consensus Clustering.
 
 ```{r perform-clustering}
-clusters <- cluster::pam(diff.expr.transposed, k=4)
+clusters <- pam(diff.expr.transposed, k=ideal.K)
 ```
 
 The data segregate into four clusters with the following distribution:
@@ -277,7 +279,10 @@ create.clust.subset <- function(clust.num) {
   return(tnbc.expr.data[,c(sample.indices, control.indices)])
 }
 
-clust.subsets <- lapply(X = list(clust1=1,clust2=2,clust3=3,clust4=4), FUN = create.clust.subset)
+cluster.list <- as.list(1:ideal.K)
+names(cluster.list) <- paste0('clust',1:ideal.K)
+
+clust.subsets <- lapply(X = cluster.list, FUN = create.clust.subset)
 ```
 
 Now that we have created expression matrices for each of the four subsets we can now perform differential expression 
