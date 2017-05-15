@@ -388,6 +388,33 @@ top.N.ordered.clusts <- lapply(FUN = top.N.logFC.genes.ordered, X = clust.top.ge
 
 ```
 
+### Unordered QGSs
+As before with the global query gene signature, we will create the unordered query gene signature by taking the signs of each of the `logFC` and making them `-1` or `+1`. 
+
+```{r unordered qgs for cluster}
+create.unordered.qgs <- function(top.n.ordered.genes) {
+  unordered.qgs <- sign(top.n.ordered.genes$logFC)
+  names(unordered.qgs) <- top.n.ordered.genes$affy_hg_u133a
+  return(unordered.qgs)
+}
+
+cluster.unordered.qgs <- lapply(FUN = create.unordered.qgs, X = top.N.ordered.clusts)
+cluster.unordered.qgs
+```
+
+### Ordered QGSs
+
+```{r ordered qgs for cluster}
+create.ordered.qgs <- function(unordered.qgs) {
+  ordered <- seq(1,params$qgs.length)
+  names(ordered) <- names(unordered.qgs)
+  ordered
+}
+
+cluster.ordered.qgs <- lapply(FUN = create.ordered.qgs, X = cluster.unordered.qgs)
+cluster.ordered.qgs
+```
+
 
 <!-- TODO 
 * COMPLETE merge top genes with mapped probe ids
