@@ -347,11 +347,11 @@ merge.probes <- function(probe.id.mappings, clust.top.genes) {
 }
 
 clust.top.genes.with.mapped.probe.ids <- lapply(FUN = function(idx) {
-  mappings <- mapped.probe.ids.top.genes[idx] 
-  top.g    <- clust.top.genes.mapped.probes[idx]
-  merge.probes(mappings, top.g)
-  
+  mappings <- mapped.probe.ids.top.genes[[idx]] 
+  top.g    <- clust.top.genes.mapped.probes[[idx]]
+  return(merge.probes(mappings, top.g))
 }, X = 1:length(clust.top.genes.mapped.probes))
+
 names(clust.top.genes.with.mapped.probe.ids) <- names(clust.top.genes.mapped.probes)
 ```
 
@@ -375,9 +375,11 @@ clust.top.genes.with.mapped.probe.ids.no.duplicate <-
   lapply(FUN = remove.empty.and.duplicate.u133a, X = clust.top.genes.with.mapped.probe.ids)
 ```
 
+
+
 <!-- TODO 
 * COMPLETE merge top genes with mapped probe ids
-* filter out empty / duplicate
+* DONE filter out empty / duplicate
 * create qgs ordered/unordered for each cluster
 * write another script to run against QUADrATiC
 * -->
