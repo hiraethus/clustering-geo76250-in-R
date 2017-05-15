@@ -132,7 +132,7 @@ Having discovered all probe IDs that map to the `r params$old.microarray.platfor
 or table of top genes:
 
 ```{r merge dataframe with u133a probe ids}
-top.genes.with.probeids <- merge(probe.id.mapping, top.genes, all.x = T, all.y = T, by.x = 'affy_hta_2_0', by.y = 'probeset_id')
+top.genes.with.probeids <- merge(probe.id.mapping, top.genes, by.x = 'affy_hta_2_0', by.y = 'probeset_id')
 ```
 
 To follow, we can filter out the rows where none of there are no probe IDs on the `r params$old.microarray.platform.name` 
@@ -343,21 +343,40 @@ mapped.probe.ids.top.genes <- lapply(X=clust.top.genes.mapped.probes, FUN = map.
 ```{r merge cluster dataframes with u133a probe ids}
 
 merge.probes <- function(probe.id.mappings, clust.top.genes) {
-  return(merge(probe.id.mapping, top.genes, all.x = T, all.y = T, by.x = 'affy_hta_2_0', by.y = 'row.names'))
+  return(merge(probe.id.mapping, clust.top.genes, by.x = 'affy_hta_2_0', by.y = 'row.names'))
 }
 
 clust.top.genes.with.mapped.probe.ids <- lapply(FUN = function(idx) {
-  mappings <- mapped.probe.ids.top.genes[i] 
-  top.g    <- clust.top.genes.mapped.probes[i]
+  mappings <- mapped.probe.ids.top.genes[idx] 
+  top.g    <- clust.top.genes.mapped.probes[idx]
   merge.probes(mappings, top.g)
   
 }, X = 1:length(clust.top.genes.mapped.probes))
 names(clust.top.genes.with.mapped.probe.ids) <- names(clust.top.genes.mapped.probes)
+```
 
+```{r remove duplicate and empty for clusters}
+
+remove.empty.and.duplicate.u133a <- function(top.genes.df) {
+  remove.empty.u133a <- function(top.genes.df) {
+    empty.u133a.rows <- which(is.na(top.genes.df$affy_hg_u133a) | top.genes.df$affy_hg_u133a == '')
+    return(top.genes.df[-empty.u133a.rows,])
+  }
+  
+  remove.duplicate.u133a <- function(top.genes.df) {
+    non.duplicate.rows <- which(!duplicated(top.genes.df$affy_hg_u133a))
+    return(top.genes.df[non.duplicate.rows,])
+  }
+  
+  return(remove.duplicate.u133a(remove.empty.u133a(top.genes.df)))
+}
+
+clust.top.genes.with.mapped.probe.ids.no.duplicate <-
+  lapply(FUN = remove.empty.and.duplicate.u133a, X = clust.top.genes.with.mapped.probe.ids)
 ```
 
 <!-- TODO 
-* merge top genes with mapped probe ids
+* COMPLETE merge top genes with mapped probe ids
 * filter out empty / duplicate
 * create qgs ordered/unordered for each cluster
 * write another script to run against QUADrATiC
