@@ -4,3 +4,4 @@ packrat/src/
 .Rproj.user
 geodata/*
 consensus_clust/*
+qgs/*
