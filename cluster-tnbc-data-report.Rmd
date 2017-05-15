@@ -321,6 +321,8 @@ venn.diagram(clust.sd.genes, "ClusterSDGeneVennDiagram.tiff")
 
 ## Map cluster Affymetrix HTA 2 to `r params$old.microarray.platform.name` for each cluster
 
+<!-- TODO add some text corresponding to creation of global qgs -->
+
 ```{r map probes for each cluster}
 
 map.probe.ids <- function(top.gene.df) {
@@ -337,3 +339,26 @@ mapped.probe.ids.top.genes <- lapply(X=clust.top.genes.mapped.probes, FUN = map.
 
 ```
 
+
+```{r merge cluster dataframes with u133a probe ids}
+
+merge.probes <- function(probe.id.mappings, clust.top.genes) {
+  return(merge(probe.id.mapping, top.genes, all.x = T, all.y = T, by.x = 'affy_hta_2_0', by.y = 'row.names'))
+}
+
+clust.top.genes.with.mapped.probe.ids <- lapply(FUN = function(idx) {
+  mappings <- mapped.probe.ids.top.genes[i] 
+  top.g    <- clust.top.genes.mapped.probes[i]
+  merge.probes(mappings, top.g)
+  
+}, X = 1:length(clust.top.genes.mapped.probes))
+names(clust.top.genes.with.mapped.probe.ids) <- names(clust.top.genes.mapped.probes)
+
+```
+
+<!-- TODO 
+* merge top genes with mapped probe ids
+* filter out empty / duplicate
+* create qgs ordered/unordered for each cluster
+* write another script to run against QUADrATiC
+* -->
